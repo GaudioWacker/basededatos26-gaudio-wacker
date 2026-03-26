@@ -1,62 +1,69 @@
-1)
-delimiter //
-create function estado (fechaDesde date, fechaHasta date, estado varchar(50))
-returns int deterministic
-begin
-	declare cantidad int;
-    
-    select count(*) into cantidad from orders
-    where status=estado and orderDate between fechaDesde and fechaHasta;
-    
-    return cantidad;
-end //
-delimiter ;
 
-2)
-DELIMITER //
-CREATE FUNCTION OrdenesEntregadas(fechaDesde DATE, fechaHasta DATE)
-RETURNS INT DETERMINISTIC
-BEGIN
-    DECLARE cantidad INT;
-    
-    SELECT COUNT(*) INTO cantidad
-    FROM orders
-    WHERE shippedDate IS NOT NULL
-	AND shippedDate BETWEEN fechaDesde AND fechaHasta;
-    
-    RETURN cantidad;
-END //
-DELIMITER ;
-
-3)
+7)
 delimiter //
-create function ciudadEmpleado (numeroCliente int)
-returns varchar(50) deterministic
+create function beneficio (numero int, codigo varchar(50))returns float deterministic
 begin
-	declare ciudad varchar(50);
+	declare precio float;
+    select (od.priceEach-p.buyPrice) as beneficio into precio from orderdetails od
+    join products p on od.productCode=p.productCode
+    where od.orderNumber=numero and p.productCode=codigo;
     
-    select o.city into ciudad from
-    customers c
-    join employees e on c.salesRepEmployeeNumber=e.employeeNumber
-    join offices o on e.officeCode=o.officeCode
-    where c.customerNumber=numeroCliente;
-    
-    return ciudad;
-end //
+    return precio;
+end//
 delimiter ;
 
 8)
 delimiter //
-create function estado (numero int)
-returns int deterministic
+create function estado (numero int)returns int deterministic
 begin
 	declare estado int;
-    
-    select if(status="Cancelled", -1, 0) as resultado into estado from
-    orders
+    select if(status="Cancelled", -1, 0) as resultado into estado from orders
     where orderNumber=numero;
     
     return estado;
 end//
 delimiter ;
 
+10)
+delimiter //
+create function sugerido (codigo varchar(50))returns float deterministic
+begin
+	declare porcentaje float;
+    select count(od.productCode)*100.0/(
+		                                select count(productCode) from orderdetails where productCode=codigo
+									    ) into porcentaje from orderdetails od
+    join products p on od.productCode=p.productCode
+    where p.MSRP < od.priceEach and od.productCode=codigo;
+    
+    return porcentaje;
+end//
+delimiter ;
+
+12)
+delimiter //
+create function cantOrden (fechaDesde date, fechaHasta date, codigo varchar(50))returns float deterministic
+begin
+	declare mayorPrecio float;
+    select max(od.priceEach) into mayorPrecio from orderdetails od 
+    join orders o on od.orderNumber=o.orderNumber
+    where o.orderDate between fechaDesde and fechaHasta and od.productCode=codigo;
+    
+	if mayorPrecio is null then
+		return 0;
+	end if;
+    
+    return mayorPrecio;
+end//
+delimiter ;
+
+14)
+delimiter //
+create function numeroApellido (numero int)returns varchar(50) deterministic
+begin
+	declare apellido varchar(50);
+    select b.lastName into apellido from employees a join employees b on a.reportsTo=b.employeeNumber 
+    where a.employeeNumber=numero;
+    
+    return apellido;
+end//
+delimiter ;
