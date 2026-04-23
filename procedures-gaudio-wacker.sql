@@ -1,3 +1,5 @@
+use classicmodels;
+
 1)
 delimiter //
 create procedure mayorPrecio()
@@ -51,3 +53,64 @@ begin
 end //
 delimiter ;
 
+9)
+delimiter //
+create procedure CiudadesOffices (out listadoCiudad varchar(5000))
+begin
+	declare hayFilas boolean default 1;
+	declare ciudad varchar(50);
+    declare nombreCursor cursor for select city from offices;
+    declare continue handler for not found set hayFilas = 0;
+    set listadoCiudad='';
+    open nombreCursor;
+    bucle:loop
+		fetch nombreCursor into ciudad;
+        if hayFilas=0 then
+			leave bucle;
+		end if;
+        set listadoCiudad=concat(ciudad,", ",listadoCiudad);
+	end loop bucle;
+    close nombreCursor;
+end //
+delimiter ;
+
+11)
+delimiter //
+create procedure alterCommentOrder (in nroCliente int)
+begin
+	declare hayFilas boolean default 1;
+    declare comentario varchar(75);
+    declare precio float;
+    declare nombreCursor cursor for select comments from orders;
+    declare continue handler for not found set hayFilas = 0;
+    open nombreCursor;
+    bucle:loop
+		fetch nombreCursor into comentario;
+        if hayFilas=0 then
+			leave bucle;
+		end if;
+        if comentario is null then
+			select sum(od.quantityOrdered*od.priceEach) into precio from orderdetails od join orders o on
+            od.orderNumber=o.orderNumber where o.customerNumber=nroCliente group by o.orderNumber;
+			update orders set comments = concat('El total de la orden es ', precio) where customerNumber = nroCliente;
+		end if;
+	end loop bucle;
+    close nombreCursor;
+end //
+delimiter ;
+
+13)
+delimiter //
+create procedure actualizarComision()
+begin
+	declare hayFilas boolean default 1;
+    declare comision float;
+    declare ventas float;
+    declare nombreCursor cursor for select ventas from employees;
+    declare continue handler for not found set hayFilas = 0;
+    open nombreCursor;
+bucle:loop
+	fetch nombreCursor 
+	
+end //
+delimiter ; 
